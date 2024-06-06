@@ -30,20 +30,20 @@ public interface TestatDataSource extends Closeable {
      * Get the overview for a given matriculation number with a new session token
      *
      * @return all overviews
-     * @throws IllegalArgumentException if the matriculation number is invalid
+     * @throws IllegalArgumentException if the matriculation number is invalid (Account will be suspended)
      * @throws IOException              if communication with the server fails
      */
     @NotNull
-    OverviewReturn getOverviewFor(@Range(from = 0, to = Integer.MAX_VALUE) int matr_nr) throws IllegalArgumentException, IOException;
+    OverviewReturn getOverviewFor(@NotNull Account account) throws IllegalArgumentException, IOException;
 
     /**
      * Get the overview for a given matriculation number with a given session token
      *
      * @return all overviews
-     * @throws IllegalArgumentException if the matriculation number is invalid
+     * @throws IllegalArgumentException if the matriculation number is invalid (Account will be suspended)
      * @throws IOException              if communication with the server fails
      */
     @NotNull
-    List<Overview> getOverviewFor(@Range(from = 0, to = Integer.MAX_VALUE) int matr_nr, @NotNull String sessionToken) throws IllegalArgumentException, IOException;
+    List<Overview> getOverviewFor(@NotNull Account account, @NotNull String sessionToken) throws IllegalArgumentException, IOException;
 
 }
