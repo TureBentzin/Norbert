@@ -29,3 +29,6 @@ replay_pid*
 # Maven
 target/
 dependency-reduced-pom.xml
+
+# Norbert
+*.sqlite

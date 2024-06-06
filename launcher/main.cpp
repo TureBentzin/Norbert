@@ -8,20 +8,20 @@ const std::string CONFIG_FILE = "launcher.config";
 #ifdef __unix__
 const std::string DEFAULT_CONFIG =
         "java_bin: java;\n"
-        "jar: 1Hoever.jar;\n"
+        "jar: Norbert.jar;\n"
         "token: enter_token_here;\n"
         "bot_config: bot_config.json;\n"
         "updater: 1;\n"
-        "git_repo: https://github.com/TureBentzin/1Hoever.git;\n"
+        "git_repo: https://github.com/TureBentzin/Norbert.git;\n"
         "bot_debug: 0;\n";
 #else
 const std::string DEFAULT_CONFIG =
         "java_bin: java;\n"
-        "jar: 1Hoever.jar;\n"
+        "jar: Norbert.jar;\n"
         "token: enter_token_here;\n"
         "bot_config: bot_config.json;\n"
         "updater: 0;\n"
-        "git_repo: https://github.com/TureBentzin/1Hoever.git;\n"
+        "git_repo: https://github.com/TureBentzin/Norbert.git;\n"
         "bot_debug: 0;\n";
 #endif
 
