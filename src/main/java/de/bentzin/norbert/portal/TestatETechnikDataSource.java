@@ -34,7 +34,7 @@ public class TestatETechnikDataSource  implements TestatDataSource {
     public @NotNull OverviewReturn getOverviewFor(@NotNull Account account) throws IllegalArgumentException, IOException {
         Connection.Response res = Jsoup.connect(webUrl + "/student_login.php").data("F_Matr", Integer.toString(account.matr_nr())).method(Connection.Method.POST).execute();
 
-        if (!res.parse().title().equals(" PTV - Fh-Aachen - Studentenbereich")) {
+        if (!res.parse().title().equals("PTV - Fh-Aachen - Studentenbereich")) {
             throw new IllegalArgumentException("Couldn't log in");
         }
 
