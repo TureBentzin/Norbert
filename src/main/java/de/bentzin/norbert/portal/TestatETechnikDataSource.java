@@ -4,16 +4,12 @@ import de.bentzin.norbert.Account;
 import de.bentzin.norbert.Overview;
 import de.bentzin.norbert.Task;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Range;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.DataNode;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
