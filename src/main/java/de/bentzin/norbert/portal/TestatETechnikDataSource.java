@@ -67,9 +67,9 @@ public class TestatETechnikDataSource  implements TestatDataSource {
                 throw new IOException("couldn't load modulPage");
             }
 
-            Elements tableRows = modulPage.select("table#inner_table").select("tr:not([bgcolor])");
-
             Collection<Task> tasks = new LinkedList<>();
+
+            Elements tableRows = modulPage.select("table#inner_table").select("tr:not([bgcolor])");
 
             tableRows.forEach(taskRow -> {
                 boolean complete = Objects.requireNonNull(taskRow.child(2).firstChild()).attr("src").equals("images/checked.gif");  // lmao....
