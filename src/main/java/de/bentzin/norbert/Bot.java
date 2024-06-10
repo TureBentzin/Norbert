@@ -5,6 +5,7 @@ import de.bentzin.norbert.data.DataManager;
 import de.bentzin.norbert.portal.TestatDataSource;
 import de.bentzin.norbert.UpdateTask;
 import de.bentzin.norbert.command.GCommandListener;
+import de.bentzin.norbert.portal.TestatETechnikDataSource;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -107,6 +108,7 @@ public class Bot {
                         logger.error("Could not load config file!");
                         System.exit(UNRECOVERABLE_ERROR);
                     } else {
+
                         logger.info("Config file was loaded successfully!");
                     }
                 }
@@ -121,7 +123,7 @@ public class Bot {
                 databaseManager.createTables();
             }
 
-            dataManager = new DataManager(() -> null); //TODO ADD DATA SOURCE
+            dataManager = new DataManager(TestatETechnikDataSource::new);
             logger.info("DataManager was created successfully!");
 
             /* Commands */
