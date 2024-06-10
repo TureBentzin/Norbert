@@ -117,6 +117,7 @@ public class Bot {
             logger.info("DatabaseManager was created successfully!");
             {
                 //initial setup of the database
+                databaseManager.setup();
                 databaseManager.createTables();
             }
 
