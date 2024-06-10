@@ -26,6 +26,11 @@ public class UpdateTask implements Runnable {
 
     @Override
     public void run() {
+        try {
+            Thread.sleep(5000); //Sleep for api...
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         while (true) {
             logger.info("Running update task!");
             if (Bot.getDataManager() != null) {

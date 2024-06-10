@@ -5,6 +5,8 @@ import de.bentzin.norbert.Bot;
 import de.bentzin.norbert.Overview;
 import de.bentzin.norbert.Task;
 import de.bentzin.norbert.portal.TestatDataSource;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -82,7 +84,19 @@ public class DataManager {
                 for (Overview overview : overviews.overviews()) {
                     final List<Task> delta = Bot.getDatabaseManager().reportData(account.matr_nr(), overview);
                     for (Task task : delta) {
-                        
+                        Guild guild = Bot.getJda().getGuildById(Bot.getConfig().getGuildId());
+                        if(guild == null) {
+                            logger.error("Failed to get the guild {} from the JDA? Is the Bot on it?", Bot.getConfig().getGuildId());
+                            List<Guild> guilds = Bot.getJda().getGuilds();
+                            logger.warn("Supported guilds are: {}", guilds.stream().map(Guild::getId).toList().toString());
+                            System.exit(Bot.UNRECOVERABLE_ERROR);
+                        }
+                        TextChannel channel = guild.getTextChannelById(Bot.getConfig().getChannelId());
+                        if(channel == null) {
+                            logger.error("Failed to get the channel {} from the JDA? Was it deleted?", Bot.getConfig().getChannelId());
+                            System.exit(Bot.UNRECOVERABLE_ERROR);
+                        }
+                        channel.sendMessage("New task: " + task + " of " + account.matr_nr() + " [Completed : " + (task.done() ? "Yes" : "No") + "]").queue();
                     }
                 }
             } catch (IOException e) {

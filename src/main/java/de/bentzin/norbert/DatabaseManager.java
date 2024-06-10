@@ -85,7 +85,7 @@ public class DatabaseManager {
                         module_id varchar(255)          not null,
                         done      boolean default false not null,
                         constraint data_pk
-                            primary key (matr_nr, module_id, task_id),
+                            primary key (matr_nr, module_id, task_id)
                     );
                     """);
 
@@ -128,7 +128,10 @@ public class DatabaseManager {
     public @NotNull List<Task> getTasks(int matr_nr, @NotNull String module_id) {
         try (Connection connection = connect()) {
             List<Task> tasks = new ArrayList<>();
-            ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM data WHERE matr_nr = " + matr_nr + " AND module_id = " + module_id);
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM data WHERE matr_nr = ? AND module_id = ?");
+            preparedStatement.setInt(1, matr_nr);
+            preparedStatement.setString(2, module_id);
+            ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 final Task data = new Task(resultSet.getString("task_id"), resultSet.getBoolean("done"));
                 tasks.add(data);
@@ -159,6 +162,7 @@ public class DatabaseManager {
                 preparedStatement.setBoolean(4, task.done());
                 preparedStatement.addBatch(); //does this work as expected?
             }
+            preparedStatement.executeBatch();
         } catch (SQLException e) {
             logger.error("Error while reporting data to database!", e);
             System.exit(Bot.RESTART_ERROR);
