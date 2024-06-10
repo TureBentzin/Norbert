@@ -1,5 +1,6 @@
 package de.bentzin.norbert;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public record Task(@NotNull String name, boolean done) {
@@ -9,8 +10,14 @@ public record Task(@NotNull String name, boolean done) {
         }
     }
 
+    @Contract(pure = true)
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return name + (done ? " (done)" : "");
+    }
+
+    @Override
+    public boolean equals(@NotNull Object obj) {
+        return obj == this|| obj instanceof Task other && name.equals(other.name);
     }
 }

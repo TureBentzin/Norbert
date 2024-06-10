@@ -1,13 +1,9 @@
 package de.bentzin.norbert;
 
-import de.bentzin.norbert.portal.TestatDataSource;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.*;
 import java.util.*;
 
@@ -56,10 +52,10 @@ public class DatabaseManager {
     /* Specialized methods for the database */
 
     public void setup() {
-        try(Connection connection = connect()) {
+        try (Connection connection = connect()) {
             connection.createStatement().execute("PRAGMA foreign_keys = ON");
             logger.info("Enabled foreign keys in database!");
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             logger.error("Error while setting up database!", e);
             System.exit(Bot.UNRECOVERABLE_ERROR);
         }
@@ -70,36 +66,16 @@ public class DatabaseManager {
             logger.info("Creating tables in database...");
             connection.createStatement().execute(
                     "CREATE TABLE IF NOT EXISTS accounts (matr_nr INTEGER PRIMARY KEY, displayname varchar(255), did varchar(255))");
-            connection.createStatement().execute(
-                    "CREATE TABLE IF NOT EXISTS modules (identifier varchar(255) PRIMARY KEY)");
             connection.createStatement().execute("""
-                    CREATE TABLE IF NOT EXISTS tasks
-                    (
-                        task_id   varchar(255) not null,
-                        module_id varchar(255) not null
-                            constraint tasks_modules_identifier_fk
-                                references modules
-                                on update restrict on delete restrict,
-                        constraint tasks_pk
-                            primary key (task_id, module_id)
-                    )
+                                            CREATE TABLE IF NOT EXISTS sessions (
+                                                matr_nr INTEGER PRIMARY KEY
+                                                                                constraint sessions_accounts_matr_nr_fk
+                                                                                    references accounts on update restrict on delete restrict,
+                                                                                session_token char(26) default NULL
+                                            )
                     """);
             connection.createStatement().execute("""
-                    CREATE TABLE seassions
-                    (
-                        matr_nr  integer
-                            constraint seassions_pk
-                                primary key
-                            constraint seassions_accounts_matr_nr_fk
-                                references accounts
-                                on update restrict on delete restrict,
-                        seassion TEXT not null
-                            constraint seassion_uk
-                                unique
-                    )
-                    """);
-            connection.createStatement().execute("""
-                    create table data
+                    CREATE TABLE IF NOT EXISTS data
                     (
                         matr_nr   integer               not null
                             constraint data_accounts_matr_nr_fk
@@ -110,9 +86,6 @@ public class DatabaseManager {
                         done      boolean default false not null,
                         constraint data_pk
                             primary key (matr_nr, module_id, task_id),
-                        constraint data_tasks_module_id_task_id_fk
-                            foreign key (module_id, task_id) references tasks (module_id, task_id)
-                                on update restrict on delete restrict
                     );
                     """);
 
@@ -140,14 +113,57 @@ public class DatabaseManager {
         }
     }
 
-    public @NotNull List reportData(@NotNull int matr_nr, @NotNull Overview overview) {
+    public @NotNull Optional<String> getSession(int matr_nr) {
         try (Connection connection = connect()) {
+            ResultSet resultSet = connection.createStatement().executeQuery("SELECT session_token FROM seassions WHERE matr_nr = " + matr_nr);
+            if (resultSet.next()) {
+                return Optional.of(resultSet.getString("session_token"));
+            }
+        } catch (SQLException e) {
+            logger.error("Error while getting session from database!", e);
+        }
+        return Optional.empty();
+    }
 
+    public @NotNull List<Task> getTasks(int matr_nr, @NotNull String module_id) {
+        try (Connection connection = connect()) {
+            List<Task> tasks = new ArrayList<>();
+            ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM data WHERE matr_nr = " + matr_nr + " AND module_id = " + module_id);
+            while (resultSet.next()) {
+                final Task data = new Task(resultSet.getString("task_id"), resultSet.getBoolean("done"));
+                tasks.add(data);
+            }
+            return tasks;
+        } catch (SQLException e) {
+            logger.error("Error while getting tasks from database!", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public @NotNull List<Task> reportData(@NotNull int matr_nr, @NotNull Overview overview) {
+        final List<Task> tasks = getTasks(matr_nr, overview.getIdentifier());
+        final List<Task> delta = new ArrayList<>();
+        for (Task task : overview.getTasks()) {
+            if (!tasks.contains(task)) {
+                logger.info("New task: {} of {} [Completed : {}]", task, matr_nr, task.done() ? "Yes" : "No");
+                delta.add(task);
+            }
+        }
+        logger.info("Reporting {} new tasks for account {}", delta.size(), matr_nr);
+        try (Connection connection = connect()) {
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO data (matr_nr, task_id, module_id, done) VALUES (?, ?, ?, ?)");
+            for (Task task : delta) {
+                preparedStatement.setInt(1, matr_nr);
+                preparedStatement.setString(2, task.name());
+                preparedStatement.setString(3, overview.getIdentifier());
+                preparedStatement.setBoolean(4, task.done());
+                preparedStatement.addBatch(); //does this work as expected?
+            }
         } catch (SQLException e) {
             logger.error("Error while reporting data to database!", e);
             System.exit(Bot.RESTART_ERROR);
         }
-        return Collections.emptyList();
+        return delta;
     }
 
 }

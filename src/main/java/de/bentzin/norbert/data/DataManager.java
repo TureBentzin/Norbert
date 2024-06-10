@@ -2,6 +2,8 @@ package de.bentzin.norbert.data;
 
 import de.bentzin.norbert.Account;
 import de.bentzin.norbert.Bot;
+import de.bentzin.norbert.Overview;
+import de.bentzin.norbert.Task;
 import de.bentzin.norbert.portal.TestatDataSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,8 +78,13 @@ public class DataManager {
 
         for (Account account : accounts) {
             try {
-                TestatDataSource.OverviewReturn overview = data().getOverviewFor(account);
-
+                TestatDataSource.OverviewReturn overviews = data().getOverviewFor(account);
+                for (Overview overview : overviews.overviews()) {
+                    final List<Task> delta = Bot.getDatabaseManager().reportData(account.matr_nr(), overview);
+                    for (Task task : delta) {
+                        
+                    }
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

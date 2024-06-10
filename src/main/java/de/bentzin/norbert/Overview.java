@@ -42,6 +42,10 @@ public class Overview {
         return builder.toString();
     }
 
+    public @NotNull String getIdentifier() {
+        return identifier;
+    }
+
     public @NotNull Account getAccount() {
         return account;
     }
