@@ -61,9 +61,6 @@ public class Bot {
     @Nullable
     private static Integer shutdown = null;
 
-    @Nullable
-    private static TestatDataSource dataSource;
-
     /**
      * Entrypoint of application
      *
@@ -123,7 +120,7 @@ public class Bot {
                 databaseManager.createTables();
             }
 
-            dataManager = new DataManager(dataSource);
+            dataManager = new DataManager(() -> null); //TODO ADD DATA SOURCE
             logger.info("DataManager was created successfully!");
 
             /* Commands */
