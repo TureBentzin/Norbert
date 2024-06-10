@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    std::cout << "Welcome to the 1Hoever Launcher!" << std::endl;
+    std::cout << "Welcome to the Horbert Launcher!" << std::endl;
     std::cerr << "This is an experimental launcher! Usage in production is not recommended!" << std::endl;
     //flushall();
     bool enable_updater = true;
@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
                         goto update_failed;
                     }
                 }
-                std::string copy_command = "cp source/target/Hoever.jar " + config.jar;
+                std::string copy_command = "cp source/target/Norbert.jar " + config.jar;
                 if (debug) std::cout << "Running command: " << copy_command << std::endl;
                 exit_code = system(copy_command.c_str());
                 if (exit_code != 0) {
@@ -240,11 +240,11 @@ int main(int argc, char **argv) {
     //check if the jar file exists
     std::fstream jar_file(config.jar, std::ios::in);
     if (!config.jar.ends_with(".jar")) {
-        std::cout << "Jar file must end with .jar! Please make sure 1Hoever is installed correctly!" << std::endl;
+        std::cout << "Jar file must end with .jar! Please make sure Norbert is installed correctly!" << std::endl;
         return 1;
     }
     if (!jar_file.is_open()) {
-        std::cout << "Jar file not found! Please make sure 1Hoever is installed correctly!" << std::endl;
+        std::cout << "Jar file not found! Please make sure Norbert is installed correctly!" << std::endl;
         return 1;
     }
     jar_file.close();
