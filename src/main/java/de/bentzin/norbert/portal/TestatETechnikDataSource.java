@@ -11,6 +11,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -22,7 +23,7 @@ import java.util.Objects;
  */
 public class TestatETechnikDataSource  implements TestatDataSource {
 
-    private URL webUrl;
+    private URL webUrl = null;
 
     @Override
     public void connect(@NotNull URL url) {
@@ -32,15 +33,17 @@ public class TestatETechnikDataSource  implements TestatDataSource {
 
     @Override
     public @NotNull OverviewReturn getOverviewFor(@NotNull Account account) throws IllegalArgumentException, IOException {
+        if(webUrl == null){throw new IOException("connection isn't initialized");}
+
         Connection.Response res = Jsoup.connect(webUrl + "/student_login.php").data("F_Matr", Integer.toString(account.matr_nr())).method(Connection.Method.POST).execute();
 
-        if (!res.parse().title().equals("PTV - Fh-Aachen - Studentenbereich")) {
+        if (!res.parse().title().equals("PTV - Fh-Aachen - Studentenmenü")) {
             throw new IllegalArgumentException("Couldn't log in");
         }
 
         String sessionCookie = res.cookie("PHPSESSID");
 
-        if (sessionCookie == null || sessionCookie.length() != 27) {
+        if (sessionCookie == null /*|| sessionCookie.length() != 26*/) {
             throw new IOException("Couldn't extract session Cookie");
         }
 
@@ -49,9 +52,10 @@ public class TestatETechnikDataSource  implements TestatDataSource {
 
     @Override
     public @NotNull List<Overview> getOverviewFor(@NotNull Account account, @NotNull String sessionToken) throws IllegalArgumentException, IOException {
+        if(webUrl == null){throw new IOException("connection isn't initialized");}
         List<Overview> res = new LinkedList<>();
 
-        Connection con = Jsoup.newSession().cookie("PHPSESSID", "sessionToken");
+        Connection con = Jsoup.newSession().cookie("PHPSESSID", sessionToken);
         Document home = con.url(webUrl + "/student_login.php").post();
         if (!home.title().equals("PTV - Fh-Aachen - Studentenmenü")) {
             throw new IOException("couldn't load homepage");
@@ -85,7 +89,12 @@ public class TestatETechnikDataSource  implements TestatDataSource {
 
     @Override
     public void close() throws IOException {
-        //TODO may be called at any time in program execution
-        //Close all connections
+        webUrl = null;
     }
+
+    @Override
+    public boolean isClosed(){
+        return webUrl == null;
+    }
+
 }
