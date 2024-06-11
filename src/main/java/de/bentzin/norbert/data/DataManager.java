@@ -31,27 +31,27 @@ public class DataManager {
         testatDataSource = testatDataSourceSupplier.get();
         logger.info("Created new data source successfully");
         logger.info("Passing the target to the datasource...");
-        if(testatDataSource == null) {
+        if (testatDataSource == null) {
             logger.error("Failed to create a new data source (null)");
             System.exit(Bot.UNRECOVERABLE_ERROR + 1);
         }
         try {
             testatDataSource.connect(new URL(Bot.getConfig().getUrl()));
         } catch (MalformedURLException e) {
-           logger.error("Failed to parse the URL from the config to a valid URL", e);
-              System.exit(Bot.UNRECOVERABLE_ERROR);
+            logger.error("Failed to parse the URL from the config to a valid URL", e);
+            System.exit(Bot.UNRECOVERABLE_ERROR);
         }
     }
 
     private @NotNull TestatDataSource data() {
-        if(testatDataSource == null) {
+        if (testatDataSource == null) {
             fresh();
         }
         return testatDataSource;
     }
 
     private void discard() {
-        if(testatDataSource != null) {
+        if (testatDataSource != null) {
             logger.info("Closing data source");
             try {
                 testatDataSource.close();
@@ -80,14 +80,14 @@ public class DataManager {
         final List<Account> accounts = Bot.getDatabaseManager().getAccounts();
 
         Guild guild = Bot.getJda().getGuildById(Bot.getConfig().getGuildId());
-        if(guild == null) {
+        if (guild == null) {
             logger.error("Failed to get the guild {} from the JDA? Is the Bot on it?", Bot.getConfig().getGuildId());
             List<Guild> guilds = Bot.getJda().getGuilds();
             logger.warn("Supported guilds are: {}", guilds.stream().map(Guild::getId).toList().toString());
             System.exit(Bot.UNRECOVERABLE_ERROR);
         }
         TextChannel channel = guild.getTextChannelById(Bot.getConfig().getChannelId());
-        if(channel == null) {
+        if (channel == null) {
             logger.error("Failed to get the channel {} from the JDA? Was it deleted?", Bot.getConfig().getChannelId());
             System.exit(Bot.UNRECOVERABLE_ERROR);
         }
@@ -99,18 +99,19 @@ public class DataManager {
                     EmbedBuilder embed = new EmbedBuilder()
                             .setTitle("Neue Testate in " + overview.getIdentifier())
                             .setDescription("<@" + overview.getAccount().discordID() + "> (" + overview.getAccount().matr_nr() + ")\n")
-                            .setFooter("Alle angaben ohne gewähr")
                             .setColor(0x00a5a5);
                     final List<Task> delta = Bot.getDatabaseManager().reportData(account.matr_nr(), overview);
+                    if (delta.isEmpty()) break;
                     for (Task task : delta) {
 
-                        if(embed.getFields().size() > 24){  //if maximum length is reached
+                        if (embed.getFields().size() > 24) {  //if maximum length is reached
                             channel.sendMessageEmbeds(embed.build()).queue();
                             embed.clearFields();
                         }
 
-                        embed.addField(task.name() + (task.done() ? " :white_check_mark:" : " :x:"), "" ,false);
+                        embed.addField(task.name() + (task.done() ? "    :white_check_mark:" : " :x:"), "", false);
                     }
+
                     channel.sendMessageEmbeds(embed.build()).queue();
                 }
             } catch (IOException e) {
