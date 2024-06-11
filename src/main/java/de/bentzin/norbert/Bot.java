@@ -134,6 +134,7 @@ public class Bot {
             gCommandListener.register(new ExitCommand());
             gCommandListener.register(new UpdateCommand());
             gCommandListener.register(new SignupCommand());
+            gCommandListener.register(new OverviewCommand());
             if (debug) gCommandListener.register(new ConnectTestCommand());
 
         } catch (Exception e) {
