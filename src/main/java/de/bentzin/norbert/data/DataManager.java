@@ -109,7 +109,7 @@ public class DataManager {
                             embed.clearFields();
                         }
 
-                        embed.addField(task.name(),(task.done() ? ":white_check_mark:" : ":x:"),false);
+                        embed.addField(task.name() + (task.done() ? " :white_check_mark:" : " :x:"), "" ,false);
                     }
                     channel.sendMessageEmbeds(embed.build()).queue();
                 }
