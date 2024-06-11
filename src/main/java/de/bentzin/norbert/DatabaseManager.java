@@ -1,6 +1,7 @@
 package de.bentzin.norbert;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,6 +144,7 @@ public class DatabaseManager {
         }
     }
 
+
     public @NotNull List<Task> reportData(@NotNull int matr_nr, @NotNull Overview overview) {
         final List<Task> tasks = getTasks(matr_nr, overview.getIdentifier());
         final List<Task> delta_new = new ArrayList<>();
@@ -171,7 +173,9 @@ public class DatabaseManager {
                 preparedStatement.setBoolean(4, task.done());
                 preparedStatement.addBatch();
             }
-            preparedStatement.executeBatch();
+            if (!delta_new.isEmpty()) {
+                preparedStatement.executeBatch();
+            }
 
             PreparedStatement updateStatement = connection.prepareStatement("UPDATE data SET done = ? WHERE matr_nr = ? AND task_id = ? AND module_id = ?");
             for (Task task : delta_completed) {
@@ -181,7 +185,11 @@ public class DatabaseManager {
                 updateStatement.setString(4, overview.getIdentifier());
                 updateStatement.addBatch();
             }
-            updateStatement.executeBatch();
+
+            if (!delta_completed.isEmpty()) {
+                updateStatement.executeBatch();
+            }
+
         } catch (SQLException e) {
             logger.error("Error while reporting data to database!", e);
             System.exit(Bot.RESTART_ERROR);
