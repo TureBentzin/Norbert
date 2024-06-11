@@ -11,7 +11,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -77,7 +76,7 @@ public class TestatETechnikDataSource  implements TestatDataSource {
 
             tableRows.forEach(taskRow -> {
                 boolean complete = Objects.requireNonNull(taskRow.child(2).firstChild()).attr("src").equals("images/checked.gif");  // lmao....
-                tasks.add(new Task(taskRow.child(1).text(), complete));
+                tasks.add(new Task(taskRow.child(0).text() + " " + taskRow.child(1).text(), complete));
             });
 
             res.add(new Overview(account, entry.text(), tasks));
