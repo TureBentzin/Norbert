@@ -98,10 +98,11 @@ public class DataManager {
                 for (Overview overview : overviews.overviews()) {
                     EmbedBuilder embed = new EmbedBuilder()
                             .setTitle("Neue Testate in " + overview.getIdentifier())
-                            .setDescription("<@" + overview.getAccount().discordID() + "> (" + overview.getAccount().matr_nr() + ")\n")
+                            //.setDescription("<@" + overview.getAccount().discordID() + "> (" + overview.getAccount().matr_nr() + ")\n")
+                            .setDescription(account.displayName() + " (" + account.matr_nr() + ")\t" + "<@" + overview.getAccount().discordID() + ">\n")
                             .setColor(0x00a5a5);
                     final List<Task> delta = Bot.getDatabaseManager().reportData(account.matr_nr(), overview);
-                    if (delta.isEmpty()) break;
+                    if (delta.isEmpty()) continue;
                     for (Task task : delta) {
 
                         if (embed.getFields().size() > 24) {  //if maximum length is reached
