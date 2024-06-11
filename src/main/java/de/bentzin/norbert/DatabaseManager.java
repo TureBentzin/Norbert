@@ -97,6 +97,20 @@ public class DatabaseManager {
         }
     }
 
+    public boolean addAccount(@NotNull Account account) {
+        try (Connection connection = connect()) {
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO accounts (matr_nr, displayname, did) VALUES (?, ?, ?)");
+            preparedStatement.setInt(1, account.matr_nr());
+            preparedStatement.setString(2, account.displayName());
+            preparedStatement.setString(3, Long.toString(account.discordID()));
+            preparedStatement.execute();
+            return true;
+        } catch (SQLException e) {
+            logger.error("Error while adding account to database!", e);
+            return false;
+        }
+    }
+
     public @NotNull List<Account> getAccounts() {
         try (Connection connection = connect()) {
             List<Account> accounts = new ArrayList<>();
