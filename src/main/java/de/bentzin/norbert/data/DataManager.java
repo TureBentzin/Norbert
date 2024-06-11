@@ -79,37 +79,37 @@ public class DataManager {
          */
         final List<Account> accounts = Bot.getDatabaseManager().getAccounts();
 
+        Guild guild = Bot.getJda().getGuildById(Bot.getConfig().getGuildId());
+        if(guild == null) {
+            logger.error("Failed to get the guild {} from the JDA? Is the Bot on it?", Bot.getConfig().getGuildId());
+            List<Guild> guilds = Bot.getJda().getGuilds();
+            logger.warn("Supported guilds are: {}", guilds.stream().map(Guild::getId).toList().toString());
+            System.exit(Bot.UNRECOVERABLE_ERROR);
+        }
+        TextChannel channel = guild.getTextChannelById(Bot.getConfig().getChannelId());
+        if(channel == null) {
+            logger.error("Failed to get the channel {} from the JDA? Was it deleted?", Bot.getConfig().getChannelId());
+            System.exit(Bot.UNRECOVERABLE_ERROR);
+        }
+
         for (Account account : accounts) {
             try {
                 TestatDataSource.OverviewReturn overviews = data().getOverviewFor(account);
-
-                Guild guild = Bot.getJda().getGuildById(Bot.getConfig().getGuildId());
-                if(guild == null) {
-                    logger.error("Failed to get the guild {} from the JDA? Is the Bot on it?", Bot.getConfig().getGuildId());
-                    List<Guild> guilds = Bot.getJda().getGuilds();
-                    logger.warn("Supported guilds are: {}", guilds.stream().map(Guild::getId).toList().toString());
-                    System.exit(Bot.UNRECOVERABLE_ERROR);
-                }
-                TextChannel channel = guild.getTextChannelById(Bot.getConfig().getChannelId());
-                if(channel == null) {
-                    logger.error("Failed to get the channel {} from the JDA? Was it deleted?", Bot.getConfig().getChannelId());
-                    System.exit(Bot.UNRECOVERABLE_ERROR);
-                }
-
                 for (Overview overview : overviews.overviews()) {
                     EmbedBuilder embed = new EmbedBuilder()
-                            .setTitle("Neue Testate!!!")
-                            .setDescription("von : <@" + overview.getAccount().discordID() + "> (" +overview.getAccount().matr_nr() + ")")
-                            .setFooter("Alle angaben ohne gewähr");
+                            .setTitle("Neue Testate in " + overview.getIdentifier())
+                            .setDescription("<@" + overview.getAccount().discordID() + "> (" + overview.getAccount().matr_nr() + ")\n")
+                            .setFooter("Alle angaben ohne gewähr")
+                            .setColor(0x00a5a5);
                     final List<Task> delta = Bot.getDatabaseManager().reportData(account.matr_nr(), overview);
                     for (Task task : delta) {
-                        //if maximum length is reached
-                        if(embed.length() >= 25){
+
+                        if(embed.getFields().size() > 24){  //if maximum length is reached
                             channel.sendMessageEmbeds(embed.build()).queue();
                             embed.clearFields();
                         }
- 
-                        embed.addField((task.done() ? ":white_check_mark:" : ":x:"),task.name(),false);
+
+                        embed.addField(task.name(),(task.done() ? ":white_check_mark:" : ":x:"),false);
                     }
                     channel.sendMessageEmbeds(embed.build()).queue();
                 }
