@@ -145,31 +145,50 @@ public class DatabaseManager {
 
     public @NotNull List<Task> reportData(@NotNull int matr_nr, @NotNull Overview overview) {
         final List<Task> tasks = getTasks(matr_nr, overview.getIdentifier());
-        final List<Task> delta = new ArrayList<>();
+        final List<Task> delta_new = new ArrayList<>();
+        final List<Task> delta_completed = new ArrayList<>();
         for (Task task : overview.getTasks()) {
             if (!tasks.contains(task)) {
                 logger.info("New task: {} of {} [Completed : {}]", task.name(), matr_nr, task.done() ? "Yes" : "No");
-                delta.add(task);
+                delta_new.add(task);
+            } else {
+                final Task existing = tasks.get(tasks.indexOf(task));
+                if (existing.done() != task.done()) {
+                    logger.info("Task {} of {} changed from {} to {}", task.name(), matr_nr, existing.done() ? "Done" : "Not done", task.done() ? "Done" : "Not done");
+                    delta_completed.add(task);
+                }
             }
         }
-        if (!delta.isEmpty()) {
-            logger.info("Reporting {} new tasks for account {} @ {}", delta.size(), matr_nr, overview.getIdentifier());
+        if (!delta_new.isEmpty()) {
+            logger.info("Reporting {} new tasks for account {} @ {}", delta_new.size(), matr_nr, overview.getIdentifier());
         }
         try (Connection connection = connect()) {
             PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO data (matr_nr, task_id, module_id, done) VALUES (?, ?, ?, ?)");
-            for (Task task : delta) {
+            for (Task task : delta_new) {
                 preparedStatement.setInt(1, matr_nr);
                 preparedStatement.setString(2, task.name());
                 preparedStatement.setString(3, overview.getIdentifier());
                 preparedStatement.setBoolean(4, task.done());
-                preparedStatement.addBatch(); //does this work as expected?
+                preparedStatement.addBatch();
             }
             preparedStatement.executeBatch();
+
+            PreparedStatement updateStatement = connection.prepareStatement("UPDATE data SET done = ? WHERE matr_nr = ? AND task_id = ? AND module_id = ?");
+            for (Task task : delta_completed) {
+                updateStatement.setBoolean(1, task.done());
+                updateStatement.setInt(2, matr_nr);
+                updateStatement.setString(3, task.name());
+                updateStatement.setString(4, overview.getIdentifier());
+                updateStatement.addBatch();
+            }
+            updateStatement.executeBatch();
         } catch (SQLException e) {
             logger.error("Error while reporting data to database!", e);
             System.exit(Bot.RESTART_ERROR);
         }
-        return delta;
+
+        delta_completed.addAll(delta_new.stream().filter(delta -> !delta_completed.contains(delta) && delta.done()).toList());
+        return delta_completed;
     }
 
 }
