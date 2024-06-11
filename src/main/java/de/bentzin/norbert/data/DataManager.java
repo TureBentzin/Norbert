@@ -108,9 +108,8 @@ public class DataManager {
                             channel.sendMessageEmbeds(embed.build()).queue();
                             embed.clearFields();
                         }
-
+ 
                         embed.addField((task.done() ? ":white_check_mark:" : ":x:"),task.name(),false);
-                        //channel.sendMessage("New task: " + task + " of " + account.matr_nr() + " [Completed : " + (task.done() ? ":white_check_mark:" : ":x:") + "]").queue();
                     }
                     channel.sendMessageEmbeds(embed.build()).queue();
                 }
