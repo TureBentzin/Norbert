@@ -67,12 +67,12 @@ public class DatabaseManager {
             connection.createStatement().execute(
                     "CREATE TABLE IF NOT EXISTS accounts (matr_nr INTEGER PRIMARY KEY, displayname varchar(255), did varchar(255))");
             connection.createStatement().execute("""
-                                            CREATE TABLE IF NOT EXISTS sessions (
-                                                matr_nr INTEGER PRIMARY KEY
-                                                                                constraint sessions_accounts_matr_nr_fk
-                                                                                    references accounts on update restrict on delete restrict,
-                                                                                session_token char(26) default NULL
-                                            )
+                    CREATE TABLE IF NOT EXISTS sessions (
+                        matr_nr INTEGER PRIMARY KEY
+                            constraint sessions_accounts_matr_nr_fk
+                                references accounts on update restrict on delete restrict,
+                        session_token char(26) default NULL
+                    )
                     """);
             connection.createStatement().execute("""
                     CREATE TABLE IF NOT EXISTS data
@@ -148,11 +148,13 @@ public class DatabaseManager {
         final List<Task> delta = new ArrayList<>();
         for (Task task : overview.getTasks()) {
             if (!tasks.contains(task)) {
-                logger.info("New task: {} of {} [Completed : {}]", task, matr_nr, task.done() ? "Yes" : "No");
+                logger.info("New task: {} of {} [Completed : {}]", task.name(), matr_nr, task.done() ? "Yes" : "No");
                 delta.add(task);
             }
         }
-        logger.info("Reporting {} new tasks for account {}", delta.size(), matr_nr);
+        if (!delta.isEmpty()) {
+            logger.info("Reporting {} new tasks for account {} @ {}", delta.size(), matr_nr, overview.getIdentifier());
+        }
         try (Connection connection = connect()) {
             PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO data (matr_nr, task_id, module_id, done) VALUES (?, ?, ?, ?)");
             for (Task task : delta) {

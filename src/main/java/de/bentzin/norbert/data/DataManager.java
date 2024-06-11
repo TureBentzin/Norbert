@@ -96,7 +96,7 @@ public class DataManager {
                             logger.error("Failed to get the channel {} from the JDA? Was it deleted?", Bot.getConfig().getChannelId());
                             System.exit(Bot.UNRECOVERABLE_ERROR);
                         }
-                        channel.sendMessage("New task: " + task + " of " + account.matr_nr() + " [Completed : " + (task.done() ? "Yes" : "No") + "]").queue();
+                        channel.sendMessage("New task: " + task + " of " + account.matr_nr() + " [Completed : " + (task.done() ? ":white_check_mark:" : ":x:") + "]").queue();
                     }
                 }
             } catch (IOException e) {
