@@ -20,7 +20,7 @@ public class SignupCommand extends GCommand {
 
     @Override
     protected void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        int matrNr = event.getOption("matrNr").getAsInt();
+        int matrNr = event.getOption("matr").getAsInt();
         String name = event.getOption("name").getAsString();
         event.deferReply(true).queue();
         boolean b = Objects.requireNonNull(Bot.getDatabaseManager())
@@ -39,7 +39,7 @@ public class SignupCommand extends GCommand {
     @Override
     public SlashCommandData getCommandData() {
         return super.getCommandData()
-                .addOption(OptionType.INTEGER, "matrNr", "Your matriculation number", true)
+                .addOption(OptionType.INTEGER, "matr", "Your matriculation number", true)
                 .addOption(OptionType.STRING, "name", "Your name", true);
     }
 }
