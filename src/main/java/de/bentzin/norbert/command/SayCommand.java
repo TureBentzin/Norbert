@@ -19,7 +19,7 @@ public class SayCommand extends GCommand {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         event.getChannel().sendMessage(Objects.requireNonNull(event.getInteraction().getOption("text")).getAsString()).queue();
-        event.deferReply(true).queue();
+        event.getInteraction().reply("Message sent!").setEphemeral(true).queue();
     }
 
     @NotNull
