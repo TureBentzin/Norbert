@@ -5,6 +5,7 @@ import de.bentzin.norbert.Bot;
 import de.bentzin.norbert.Overview;
 import de.bentzin.norbert.Task;
 import de.bentzin.norbert.portal.TestatDataSource;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -81,23 +82,37 @@ public class DataManager {
         for (Account account : accounts) {
             try {
                 TestatDataSource.OverviewReturn overviews = data().getOverviewFor(account);
+
+                Guild guild = Bot.getJda().getGuildById(Bot.getConfig().getGuildId());
+                if(guild == null) {
+                    logger.error("Failed to get the guild {} from the JDA? Is the Bot on it?", Bot.getConfig().getGuildId());
+                    List<Guild> guilds = Bot.getJda().getGuilds();
+                    logger.warn("Supported guilds are: {}", guilds.stream().map(Guild::getId).toList().toString());
+                    System.exit(Bot.UNRECOVERABLE_ERROR);
+                }
+                TextChannel channel = guild.getTextChannelById(Bot.getConfig().getChannelId());
+                if(channel == null) {
+                    logger.error("Failed to get the channel {} from the JDA? Was it deleted?", Bot.getConfig().getChannelId());
+                    System.exit(Bot.UNRECOVERABLE_ERROR);
+                }
+
                 for (Overview overview : overviews.overviews()) {
+                    EmbedBuilder embed = new EmbedBuilder()
+                            .setTitle("Neue Testate!!!")
+                            .setDescription("von : <@" + overview.getAccount().discordID() + "> (" +overview.getAccount().matr_nr() + ")")
+                            .setFooter("Alle angaben ohne gewähr");
                     final List<Task> delta = Bot.getDatabaseManager().reportData(account.matr_nr(), overview);
                     for (Task task : delta) {
-                        Guild guild = Bot.getJda().getGuildById(Bot.getConfig().getGuildId());
-                        if(guild == null) {
-                            logger.error("Failed to get the guild {} from the JDA? Is the Bot on it?", Bot.getConfig().getGuildId());
-                            List<Guild> guilds = Bot.getJda().getGuilds();
-                            logger.warn("Supported guilds are: {}", guilds.stream().map(Guild::getId).toList().toString());
-                            System.exit(Bot.UNRECOVERABLE_ERROR);
+                        //if maximum length is reached
+                        if(embed.length() >= 25){
+                            channel.sendMessageEmbeds(embed.build()).queue();
+                            embed.clearFields();
                         }
-                        TextChannel channel = guild.getTextChannelById(Bot.getConfig().getChannelId());
-                        if(channel == null) {
-                            logger.error("Failed to get the channel {} from the JDA? Was it deleted?", Bot.getConfig().getChannelId());
-                            System.exit(Bot.UNRECOVERABLE_ERROR);
-                        }
-                        channel.sendMessage("New task: " + task + " of " + account.matr_nr() + " [Completed : " + (task.done() ? ":white_check_mark:" : ":x:") + "]").queue();
+
+                        embed.addField((task.done() ? ":white_check_mark:" : ":x:"),task.name(),false);
+                        //channel.sendMessage("New task: " + task + " of " + account.matr_nr() + " [Completed : " + (task.done() ? ":white_check_mark:" : ":x:") + "]").queue();
                     }
+                    channel.sendMessageEmbeds(embed.build()).queue();
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
