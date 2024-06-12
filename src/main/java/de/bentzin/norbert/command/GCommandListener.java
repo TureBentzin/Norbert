@@ -41,7 +41,7 @@ public class GCommandListener extends ListenerAdapter {
                     logger.error("Error while executing command {}", name);
                     logger.error("Error: ", e);
                     event.getInteraction().getHook().editOriginal("An error occurred while executing the command! I will restart. You can try to execute the command again after im online again!").queue();
-                    Bot.shutdown(Bot.RESTART_ERROR);
+                    Bot.shutdownAsync(Bot.RESTART_ERROR);
                 }
 
                 return;
