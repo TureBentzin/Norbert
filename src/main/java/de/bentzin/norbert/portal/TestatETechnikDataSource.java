@@ -65,12 +65,10 @@ public class TestatETechnikDataSource  implements TestatDataSource {
                     .cookie("PHPSESSID", sessionToken)
                     .data("F_Matr", Integer.toString(account.matr_nr()))
                     .method(Connection.Method.POST).execute();
-
-            if (!loginTest.parse().title().equals("PTV - Fh-Aachen - Studentenmenü")) {
+            home = loginTest.parse();
+            if (home.title().equals("PTV - Fh-Aachen - Studentenmenü")) {
                 throw new IllegalArgumentException("Couldn't log in");
             }
-
-            home = loginTest.parse();
         }
 
         Elements options = home.select("option");
