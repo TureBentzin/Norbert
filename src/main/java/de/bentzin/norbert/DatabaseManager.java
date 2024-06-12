@@ -142,7 +142,7 @@ public class DatabaseManager {
 
     public void storeSession(int matr_nr, @NotNull String session) {
         try (Connection connection = connect()) {
-            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO sessions (matr_nr, session_token) VALUES (?, ?)");
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO sessions (matr_nr, session_token) VALUES (?, ?) ON CONFLICT(matr_nr) DO UPDATE SET session_token = excluded.session_token");
             preparedStatement.setInt(1, matr_nr);
             preparedStatement.setString(2, session);
             preparedStatement.execute();
