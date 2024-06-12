@@ -45,12 +45,11 @@ public class TestatETechnikDataSource  implements TestatDataSource {
         if (sessionCookie == null /*|| sessionCookie.length() != 26*/) {
             throw new IOException("Couldn't extract session Cookie");
         }
-
-        return new OverviewReturn(getOverviewFor(account, sessionCookie), sessionCookie);
+        return getOverviewFor(account, sessionCookie);
     }
 
     @Override
-    public @NotNull List<Overview> getOverviewFor(@NotNull Account account, @NotNull String sessionToken) throws IllegalArgumentException, IOException {
+    public @NotNull OverviewReturn getOverviewFor(@NotNull Account account, @NotNull String sessionToken) throws IllegalArgumentException, IOException {
         if(webUrl == null){throw new IOException("connection isn't initialized");}
         List<Overview> res = new LinkedList<>();
 
@@ -83,7 +82,7 @@ public class TestatETechnikDataSource  implements TestatDataSource {
         }
 
 
-        return res;
+        return new OverviewReturn(res, sessionToken);
     }
 
     @Override

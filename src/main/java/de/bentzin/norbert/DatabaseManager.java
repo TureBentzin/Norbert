@@ -140,6 +140,17 @@ public class DatabaseManager {
         return Optional.empty();
     }
 
+    public void storeSession(int matr_nr, @NotNull String session) {
+        try (Connection connection = connect()) {
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO sessions (matr_nr, session_token) VALUES (?, ?)");
+            preparedStatement.setInt(1, matr_nr);
+            preparedStatement.setString(2, session);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            logger.error("Error while storing session in database!", e);
+        }
+    }
+
     public @NotNull List<Task> getTasks(int matr_nr, @NotNull String module_id) {
         try (Connection connection = connect()) {
             List<Task> tasks = new ArrayList<>();
