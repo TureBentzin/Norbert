@@ -130,7 +130,7 @@ public class DatabaseManager {
 
     public @NotNull Optional<String> getSession(int matr_nr) {
         try (Connection connection = connect()) {
-            ResultSet resultSet = connection.createStatement().executeQuery("SELECT session_token FROM seassions WHERE matr_nr = " + matr_nr);
+            ResultSet resultSet = connection.createStatement().executeQuery("SELECT session_token FROM sessions WHERE matr_nr = " + matr_nr);
             if (resultSet.next()) {
                 return Optional.of(resultSet.getString("session_token"));
             }
