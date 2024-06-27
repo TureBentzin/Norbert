@@ -44,7 +44,7 @@ public interface TestatDataSource extends Closeable {
      * @throws IOException              if communication with the server fails
      */
     @NotNull
-    List<Overview> getOverviewFor(@NotNull Account account, @NotNull String sessionToken) throws IllegalArgumentException, IOException;
+    OverviewReturn getOverviewFor(@NotNull Account account, @NotNull String sessionToken) throws IllegalArgumentException, IOException;
 
     default boolean isClosed() {
         return false;

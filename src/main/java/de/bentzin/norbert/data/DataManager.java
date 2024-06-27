@@ -8,6 +8,7 @@ import de.bentzin.norbert.portal.TestatDataSource;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 
@@ -93,30 +95,43 @@ public class DataManager {
         }
 
         for (Account account : accounts) {
-            try {
-                TestatDataSource.OverviewReturn overviews = data().getOverviewFor(account);
-                for (Overview overview : overviews.overviews()) {
-                    EmbedBuilder embed = new EmbedBuilder()
-                            .setTitle("Neue Testate in " + overview.getIdentifier())
-                            //.setDescription("<@" + overview.getAccount().discordID() + "> (" + overview.getAccount().matr_nr() + ")\n")
-                            .setDescription(account.displayName() + " (" + account.matr_nr() + ")\t" + "<@" + overview.getAccount().discordID() + ">\n")
-                            .setColor(0x00a5a5);
-                    final List<Task> delta = Bot.getDatabaseManager().reportData(account.matr_nr(), overview);
-                    if (delta.isEmpty()) continue;
-                    for (Task task : delta) {
-
-                        if (embed.getFields().size() > 24) {  //if maximum length is reached
-                            channel.sendMessageEmbeds(embed.build()).queue();
-                            embed.clearFields();
+            AtomicReference<TestatDataSource.OverviewReturn> overviewsReference = new AtomicReference<>();
+            Bot.getDatabaseManager().getSession(account.matr_nr())
+                    .ifPresentOrElse(session -> {
+                        try {
+                            overviewsReference.set(data().getOverviewFor(account, session));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }, () -> {
+                        try {
+                            overviewsReference.set(data().getOverviewFor(account));
+                            Bot.getDatabaseManager().storeSession(account.matr_nr(), overviewsReference.get().sessionToken());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
                         }
 
-                        embed.addField(task.name() + (task.done() ? "    :white_check_mark:" : " :x:"), "", false);
+                    });
+            TestatDataSource.OverviewReturn overviews = overviewsReference.get();
+            for (Overview overview : overviews.overviews()) {
+                EmbedBuilder embed = new EmbedBuilder()
+                        .setTitle("Neue Testate in " + overview.getIdentifier())
+                        //.setDescription("<@" + overview.getAccount().discordID() + "> (" + overview.getAccount().matr_nr() + ")\n")
+                        .setDescription(account.displayName() + " (" + account.matr_nr() + ")\t" + "<@" + overview.getAccount().discordID() + ">\n")
+                        .setColor(0x00a5a5);
+                final List<Task> delta = Bot.getDatabaseManager().reportData(account.matr_nr(), overview);
+                if (delta.isEmpty()) continue;
+                for (Task task : delta) {
+
+                    if (embed.getFields().size() > 24) {  //if maximum length is reached
+                        channel.sendMessageEmbeds(embed.build()).queue();
+                        embed.clearFields();
                     }
 
-                    channel.sendMessageEmbeds(embed.build()).queue();
+                    embed.addField(task.name() + (task.done() ? "    :white_check_mark:" : " :x:"), "", false);
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+
+                channel.sendMessageEmbeds(embed.build()).queue();
             }
         }
 

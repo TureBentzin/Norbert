@@ -9,6 +9,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
@@ -23,6 +25,7 @@ import java.util.Objects;
 public class TestatETechnikDataSource  implements TestatDataSource {
 
     private URL webUrl = null;
+    private final @NotNull Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public void connect(@NotNull URL url) {
@@ -45,19 +48,28 @@ public class TestatETechnikDataSource  implements TestatDataSource {
         if (sessionCookie == null /*|| sessionCookie.length() != 26*/) {
             throw new IOException("Couldn't extract session Cookie");
         }
-
-        return new OverviewReturn(getOverviewFor(account, sessionCookie), sessionCookie);
+        return getOverviewFor(account, sessionCookie);
     }
 
     @Override
-    public @NotNull List<Overview> getOverviewFor(@NotNull Account account, @NotNull String sessionToken) throws IllegalArgumentException, IOException {
+    public @NotNull OverviewReturn getOverviewFor(@NotNull Account account, @NotNull String sessionToken) throws IllegalArgumentException, IOException {
         if(webUrl == null){throw new IOException("connection isn't initialized");}
         List<Overview> res = new LinkedList<>();
 
         Connection con = Jsoup.newSession().cookie("PHPSESSID", sessionToken);
         Document home = con.url(webUrl + "/student_login.php").post();
+
         if (!home.title().equals("PTV - Fh-Aachen - Studentenmenü")) {
-            throw new IOException("couldn't load homepage");
+            logger.warn("{} session expired! logging in again...", account.matr_nr());
+            Connection.Response loginTest = Jsoup.connect(webUrl + "/student_login.php")
+                    .cookie("PHPSESSID", sessionToken)
+                    .data("F_Matr", Integer.toString(account.matr_nr()))
+                    .method(Connection.Method.POST).execute();
+
+            home = loginTest.parse();
+            if (!home.title().equals("PTV - Fh-Aachen - Studentenmenü")) {
+                throw new IllegalArgumentException("Couldn't log in");
+            }
         }
 
         Elements options = home.select("option");
@@ -83,7 +95,7 @@ public class TestatETechnikDataSource  implements TestatDataSource {
         }
 
 
-        return res;
+        return new OverviewReturn(res, sessionToken);
     }
 
     @Override

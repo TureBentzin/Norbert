@@ -130,7 +130,7 @@ public class DatabaseManager {
 
     public @NotNull Optional<String> getSession(int matr_nr) {
         try (Connection connection = connect()) {
-            ResultSet resultSet = connection.createStatement().executeQuery("SELECT session_token FROM seassions WHERE matr_nr = " + matr_nr);
+            ResultSet resultSet = connection.createStatement().executeQuery("SELECT session_token FROM sessions WHERE matr_nr = " + matr_nr);
             if (resultSet.next()) {
                 return Optional.of(resultSet.getString("session_token"));
             }
@@ -138,6 +138,17 @@ public class DatabaseManager {
             logger.error("Error while getting session from database!", e);
         }
         return Optional.empty();
+    }
+
+    public void storeSession(int matr_nr, @NotNull String session) {
+        try (Connection connection = connect()) {
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO sessions (matr_nr, session_token) VALUES (?, ?) ON CONFLICT(matr_nr) DO UPDATE SET session_token = excluded.session_token");
+            preparedStatement.setInt(1, matr_nr);
+            preparedStatement.setString(2, session);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            logger.error("Error while storing session in database!", e);
+        }
     }
 
     public @NotNull List<Task> getTasks(int matr_nr, @NotNull String module_id) {
