@@ -146,7 +146,7 @@ public class Bot {
         try {
             JDABuilder jdaBuilder = JDABuilder.createDefault(token);
             jdaBuilder.disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE);
-            jdaBuilder.setBulkDeleteSplittingEnabled(false).setActivity(Activity.streaming("auf meinen Ruhestand zu", "https://www.twitch.tv/joeel561"));
+            jdaBuilder.setBulkDeleteSplittingEnabled(false).setActivity(Activity.watching("Endtestate"));
             jdaBuilder.addEventListeners(gCommandListener);
             jda = jdaBuilder.build();
             gCommandListener.updateJDA(jda);
