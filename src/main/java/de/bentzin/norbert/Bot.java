@@ -146,7 +146,7 @@ public class Bot {
         try {
             JDABuilder jdaBuilder = JDABuilder.createDefault(token);
             jdaBuilder.disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE);
-            jdaBuilder.setBulkDeleteSplittingEnabled(false).setActivity(Activity.customStatus("Wo sind die Endtestate?"));
+            jdaBuilder.setBulkDeleteSplittingEnabled(false).setAutoReconnect(true);
             jdaBuilder.addEventListeners(gCommandListener);
             jda = jdaBuilder.build();
             gCommandListener.updateJDA(jda);
