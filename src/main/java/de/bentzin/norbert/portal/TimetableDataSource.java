@@ -1,11 +1,13 @@
 package de.bentzin.norbert.portal;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URL;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -21,8 +23,10 @@ public interface TimetableDataSource extends Closeable {
         return l;
     }
 
-    record dayEvent(@NotNull LocalDate date, @NotNull LocalTime start, @NotNull LocalTime end){}
-    record timetableReturn(@NotNull List<dayEvent> overviews, @NotNull String modulCode) {}
+    record DateEvent(@NotNull LocalDate day, @NotNull LocalTime start, @NotNull LocalTime end){}
+    record WeekdayEvent(@NotNull DayOfWeek day, @NotNull LocalTime start, @NotNull LocalTime end){}
+    record EventWrapper(@Nullable DateEvent dEvent, @Nullable WeekdayEvent wEvent, boolean type){}
+    record timetableReturn(@NotNull List<EventWrapper> overviews, @NotNull String modulCode) {}
 
     void connect(final @NotNull URL url);
 
@@ -34,7 +38,7 @@ public interface TimetableDataSource extends Closeable {
      * @throws IOException              if communication with the server fails
      */
     @NotNull
-    de.bentzin.norbert.portal.TimetableDataSource.timetableReturn getOverviewFor(@NotNull String modulCode) throws IllegalArgumentException, IOException;
+    de.bentzin.norbert.portal.TimetableDataSource.timetableReturn getTimetableFor(@NotNull String modulCode) throws IllegalArgumentException, IOException;
 
     default boolean isClosed() {
         return false;
