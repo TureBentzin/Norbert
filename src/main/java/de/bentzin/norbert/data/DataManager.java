@@ -137,4 +137,24 @@ public class DataManager {
 
     }
 
+    public void scheduleUpdateTasks(){
+        final List<Account> accounts = Bot.getDatabaseManager().getAccounts();
+
+        Guild guild = Bot.getJda().getGuildById(Bot.getConfig().getGuildId());
+        if (guild == null) {
+            logger.error("Failed to get the guild {} from the JDA? Is the Bot on it?", Bot.getConfig().getGuildId());
+            List<Guild> guilds = Bot.getJda().getGuilds();
+            logger.warn("Supported guilds are: {}", guilds.stream().map(Guild::getId).toList().toString());
+            System.exit(Bot.UNRECOVERABLE_ERROR);
+        }
+        TextChannel channel = guild.getTextChannelById(Bot.getConfig().getChannelId());
+        if (channel == null) {
+            logger.error("Failed to get the channel {} from the JDA? Was it deleted?", Bot.getConfig().getChannelId());
+            System.exit(Bot.UNRECOVERABLE_ERROR);
+        }
+        //TODO get Tasks and schedule
+    }
+
+
+
 }

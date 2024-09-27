@@ -2,13 +2,10 @@ package de.bentzin.norbert;
 
 import de.bentzin.norbert.command.*;
 import de.bentzin.norbert.data.DataManager;
-import de.bentzin.norbert.portal.TestatDataSource;
-import de.bentzin.norbert.UpdateTask;
 import de.bentzin.norbert.command.GCommandListener;
 import de.bentzin.norbert.portal.TestatETechnikDataSource;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
@@ -157,7 +154,7 @@ public class Bot {
 
         if (configObject.isWriteEnabled()) {
             logger.info("Executing initial UpdateTask procedure!");
-            updateThread = UpdateTask.execute();
+            updateThread = UpdateScheduler.execute();
         }
         logger.info("Bot started successfully!");
         //await shutdown
