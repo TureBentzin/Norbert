@@ -129,8 +129,7 @@ public class Bot {
             /* Commands */
             gCommandListener = new GCommandListener();
 
-            SayCommand sayCommand = new SayCommand();
-            gCommandListener.register(sayCommand);
+            gCommandListener.register(new SayCommand());
             gCommandListener.register(new ExitCommand());
             gCommandListener.register(new UpdateCommand());
             gCommandListener.register(new SignupCommand());
