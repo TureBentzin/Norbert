@@ -259,7 +259,7 @@ public class DatabaseManager {
                             ON module_hot_time.module_id = user_module_subscription.module_id
                         INNER JOIN accounts
                             ON user_module_subscription.matr_nr = accounts.matr_nr
-                    WHERE unixepoch('now') BETWEEN unixepoch(module_hot_time.start_time) AND unixepoch(module_hot_time.end_time)
+                    WHERE unixepoch(time('now')) BETWEEN unixepoch(module_hot_time.start_time) AND unixepoch(module_hot_time.end_time)
                         AND module_hot_time.weekday NOT NULL AND julianday('now') LIKE julianday('now', concat('weekday ', module_hot_time.weekday))
                         OR module_hot_time.singleDate NOT NULL AND julianday('now') LIKE julianday(module_hot_time.singleDate))
                     ORDER BY accounts.matr_nr
