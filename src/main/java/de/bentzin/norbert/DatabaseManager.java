@@ -88,6 +88,29 @@ public class DatabaseManager {
                             primary key (matr_nr, module_id, task_id)
                     );
                     """);
+            connection.createStatement().execute("""
+                    CREATE TABLE IF NOT EXISTS user_module_subscription
+                    (
+                        matr_nr integer                 NOT NULL
+                            constraint user_fk
+                                references accounts
+                                on update cascade on delete cascade,
+                        module_id   CHARACTER(5)             NOT NULL, -- 5digit code
+                        semester_year    VARCHAR(15)    NOT NULL, -- e.g: WS2023/2024
+                        constraint data_pk
+                            primary key (matr_nr, module_id, semester)
+                    );
+                    """);
+            connection.createStatement().execute("""
+                    CREATE TABLE IF NOT EXISTS module_hot_time
+                    (
+                        module_id   CHARACTER(5)    NOT NULL, -- 5digit code
+                        start_time  CHARACTER(20)   NOT NULL,
+                        end_time    CHARACTER(20)   NOT NULL,
+                        weekday     CHARACTER(20)   NULL   -- if there is NO discrete Date. Sun is 0
+                        singleDate  CHARACTER(20)   NULL   -- if there is A discrete Date.
+                    );
+                    """);
 
 
         } catch (SQLException e) {
@@ -221,6 +244,45 @@ public class DatabaseManager {
 
         delta_completed.addAll(delta_new.stream().filter(delta -> !delta_completed.contains(delta) && delta.done()).toList());
         return delta_completed;
+    }
+
+    public @NotNull List<SpecificUpdate> getSpecificUpdates(){
+        try (Connection connection = connect()) {
+            LinkedList<SpecificUpdate> updates = new LinkedList<>();
+            PreparedStatement preparedStatement = connection.prepareStatement("""
+                    SELECT module_hot_time.module_id,
+                        accounts.matr_nr,
+                        accounts.displayname,
+                        accounts.did
+                    FROM module_hot_time
+                        INNER JOIN user_module_subscription
+                            ON module_hot_time.module_id = user_module_subscription.module_id
+                        INNER JOIN accounts
+                            ON user_module_subscription.matr_nr = accounts.matr_nr
+                    WHERE unixepoch('now') BETWEEN unixepoch(module_hot_time.start_time) AND unixepoch(module_hot_time.end_time)
+                        AND module_hot_time.weekday NOT NULL AND julianday('now') LIKE julianday('now', concat('weekday ', module_hot_time.weekday))
+                        OR module_hot_time.singleDate NOT NULL AND julianday('now') LIKE julianday(module_hot_time.singleDate))
+                    ORDER BY accounts.matr_nr
+                    """);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            int curMatrNr = 0;
+            while (resultSet.next()) {
+                if(resultSet.getInt("accounts.matr_nr") != curMatrNr){   //Aktueller Nutzereintrag/
+                    updates.add(new SpecificUpdate(new Account(resultSet.getString("accounts.displayname"),
+                            resultSet.getLong("accounts.did"),
+                            resultSet.getInt("accounts.matr_nr")),
+                            new ArrayList<>()));
+                    curMatrNr = resultSet.getInt("accounts.matr_nr");
+                }
+                updates.getLast().lvnr().add(resultSet.getString("module_hot_time.module_id"));
+            }
+            return updates;
+        } catch (SQLException e) {
+            logger.error("Error while getting tasks from database!", e);
+            return Collections.emptyList();
+        }
     }
 
 }
